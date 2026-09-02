@@ -1,0 +1,17 @@
+@st.cache_resource : ensures the model and label map are loaded only once, even if streamlit reloads
+
+def predict_fetal_position(img):
+    img = img.resize((224, 224))  #pixels , as models expects
+    img_array = np.array(img) / 255.0   #normlaise pixel value into 0 and 1
+    img_array = np.expand_dims(img_array, axis=0)
+    pred = model.predict(img_array)   #predict by pretrained model
+
+    if pred.shape[-1] == 1:
+        class_index = int(pred[0][0] > 0.5)
+        class_name = "Optimal" if class_index == 1 else "Non_Optimal"
+        conf = pred[0][0] if class_index == 1 else 1 - pred[0][0]
+    else:
+        class_index = np.argmax(pred)
+        class_name = list(label_map.keys())[list(label_map.values()).index(class_index)]
+        conf = np.max(pred)
+    return class_name, conf
